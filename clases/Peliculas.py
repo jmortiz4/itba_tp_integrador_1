@@ -1,8 +1,47 @@
 
 import pandas as pd
-import Funciones_Auxiliares as faux
+import Helper as faux
+import matplotlib.pyplot as plt
 
 caracteresComplejos=["'","-"]
+
+
+def genero_tabla_para_plot(df_tabla,generos):
+
+    df_mov=df_tabla.copy()
+    df_mov['year'] = df_mov['DateNorm'].dt.year
+    genre_columns = ['year']+ generos #Si no especificaron generos se muestran todos
+    df_genres = df_mov[genre_columns].copy()
+    genre_by_year = df_genres.groupby('year').sum()
+    genre_by_year=genre_by_year.loc[:, (genre_by_year != 0).any(axis=0)]  # Borrar columnas con valor 0
+    return genre_by_year
+
+
+def barplot(tabla):
+
+    # Crear el gráfico de barras apiladas
+    grafico = tabla.plot(kind='bar', stacked=True, figsize=(10, 7))
+
+    # Configurar las etiquetas y el título
+    plt.xlabel('Year')
+    plt.xticks(rotation=45)
+
+    plt.ylabel('Number of Movies')
+    max_y = tabla.sum(axis=1).max() # Calcular el valor máximo del eje y
+    plt.yticks(range(0, int(max_y) + 1, 2))  # Define los saltos discretos desde 0 hasta el valor máximo calculado
+
+    plt.title('Number of Movies per Genre by Year', fontsize=20)  # Ajustar el tamaño del título
+    plt.legend(title='Genre', loc='upper left')  # Ubicar la leyenda arriba a la izquierda
+
+    # Agregar etiquetas de datos dentro de las cajas
+    for container in grafico.containers:
+        for bar in container:
+            height = bar.get_height()
+            width = bar.get_width()
+            x, y = bar.get_xy()
+            grafico.text(x + width / 2, y + height / 2, f'{height:.0f}', ha='center', va='center')
+
+    plt.show()
 
 class Pelicula:
     def __init__(self, nombre, anio, generos, id = None):
@@ -99,11 +138,13 @@ class Pelicula:
 
         if generos!=None:
             generos = faux.elminoCaracterDeLista(generos,caracteresComplejos)# corrijo caracteres problematicos '-
-            generosR = [x + "== 1 and " for x in generos] 
-            queryText+=''.join(generosR)
-        
-       #Se castea a todo menos los ultimos 5 caracteres ya que son un " and " adicional con el que siempre termina la query
-        return df_mov.query(queryText[:-5], engine="python")
+            generosR = [x + "== 1 or " for x in generos]
+            generoRjoined= ''.join(generosR)
+            queryText+= '('+generoRjoined[:-4]+')'
+        else:
+            queryText=queryText[:-5]#Se castea a todo menos los ultimos 5 caracteres ya que son un " and " adicional 
+       
+        return df_mov.query(queryText, engine="python")
 
     @classmethod
     def get_from_df(cls, df_mov, id=None, nombre = None, anios = None, generos = None):
@@ -120,24 +161,29 @@ class Pelicula:
         # generos: [generos]
         # Las estadísticas son:
         filtro = cls.filtrar_df(df_mov, anios = anios, generos= generos)
+        print(f'-Cantidad de peliculas en la selección:{filtro.shape[0]}\n')
 
         fecha_minima = filtro['DateNorm'].min()
         PelisMasAntigua=filtro[filtro['DateNorm'] == fecha_minima]
         if PelisMasAntigua.shape[0]==1:
-            print(f'Pelicula mas vieja:\n{cls.ConvertirAPeliculas(PelisMasAntigua)[0]}')
+            print(f'-Pelicula mas vieja:{cls.ConvertirAPeliculas(PelisMasAntigua)[0]}')
         else:
-            print(f'{PelisMasAntigua.shape[0]} películas comparten la fecha mas vieja:\n{cls.ConvertirAPeliculas(PelisMasAntigua)}')
+            print(f'-{PelisMasAntigua.shape[0]} películas comparten la fecha mas vieja:{cls.ConvertirAPeliculas(PelisMasAntigua)}')
 
         fecha_maxima = filtro['DateNorm'].max()
         PeliMasReciente=filtro[filtro['DateNorm'] == fecha_maxima]
         if PeliMasReciente.shape[0]==1:
-            print(f'\nPelicula mas reciente:\n{cls.ConvertirAPeliculas(PeliMasReciente)[0]}')
+            print(f'-\nPelicula mas reciente:\n{cls.ConvertirAPeliculas(PeliMasReciente)[0]}')
         else:
-            print(f'{PelisMasAntigua.shape[0]} películas comparten la fecha mas reciente:\n{cls.ConvertirAPeliculas(PeliMasReciente)}')
-        # - Datos película más vieja
-        # - Datos película más nueva
+            print(f'-\n{PeliMasReciente.shape[0]} películas comparten la fecha mas reciente:{cls.ConvertirAPeliculas(PeliMasReciente)}')
+        
+        if generos==None:
+            generos=filtro.drop(columns=['DateNorm']).columns[5:].tolist()
+        generos = faux.elminoCaracterDeLista(generos,caracteresComplejos)
+        tabla_para_plot = genero_tabla_para_plot(filtro,generos)
+        barplot(tabla_para_plot)
         # - Bar plots con la cantidad de películas por año/género.
-        # - Cantidad de películas totales.
+ 
         return
     
   
