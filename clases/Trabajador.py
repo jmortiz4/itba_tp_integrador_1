@@ -1,6 +1,7 @@
-
+import sys
+sys.path.append('../') 
 import pandas as pd
-import Funciones_Auxiliares as faux
+import Helper as faux
 
 caracteresComplejos=["'","-"]
 
