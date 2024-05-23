@@ -1,4 +1,5 @@
-
+import sys
+sys.path.append('../')
 import pandas as pd
 import Helper as faux
 import matplotlib.pyplot as plt

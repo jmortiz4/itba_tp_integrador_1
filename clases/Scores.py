@@ -54,5 +54,34 @@ class Score:
         # archivo 'filename'.
         ###
         df = pd.read_csv(filename, index_col=0)
-        
+        df['Date'] = pd.to_datetime(df['Date'])
+       
         return df
+    
+    @classmethod
+    def get_from_df(cls, df_sco, anios=None, puntuacion=None, idPelicula=None, idUsuario=None):
+        queryText=''
+
+        if idUsuario!=None:
+            queryText+='user_id=='+ str(idUsuario) + ' and '
+        if idPelicula!=None:
+            queryText+='movie_id=='+ str(idPelicula) + ' and '
+        if anios!=None:
+            desde,hasta=anios
+            queryText+='Date >= "' + str(desde)+'-01-01' +'" and Date <= "'+ str(hasta)+'-12-31' + '"'+ ' and '
+        if puntuacion!=None:
+            queryText+=f'rating=={puntuacion} and '
+        
+        queryText=queryText[:-5]#Se castea a todo menos los ultimos 5 caracteres ya que son un " and " adicional 
+    
+        return df_sco.query(queryText, engine="python")
+    
+    @classmethod
+    def obtener_rating_promedio_variable(cls, df_sco,variable='user_id'):
+        # Estadísticas por Usuario/Película: Calificación promedio de usuario, Calificación promedio por película. 
+       
+        return df_sco.groupby(variable)['rating'].mean().reset_index()
+        
+            
+
+        #- Scores: Puntuación promedio de usuario(s) por año(de película)/género. Puntuación promedio de películas por género de usuario(sexo)/rango etáreo/Ocupación.
