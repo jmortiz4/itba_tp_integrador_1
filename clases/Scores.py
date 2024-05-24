@@ -1,7 +1,7 @@
 
 import pandas as pd
-import matplotlib.pyplot as plt
-
+import numpy as np
+import Helper as Faux
 
 class Score:
     def __init__(self, timestamp, puntuacion, idPelicula, idUsuario):
@@ -82,6 +82,24 @@ class Score:
        
         return df_sco.groupby(variable)['rating'].mean().reset_index()
         
-            
+    @classmethod
+    def puntuacion_año_genero(cls,df_peliculas,df_sco,generosDeseadosList, anios=None):
+       
+        #Mergeo Scores y Peliculas y agrego la columna year
+        movies_agrupado=df_sco.groupby('movie_id')['rating'].mean().reset_index()
+        df_peliculas['year'] = df_peliculas['Release_Date'].dt.year
+        merged_df = pd.merge(movies_agrupado[['movie_id','rating']], df_peliculas.iloc[:, 3:], left_on='movie_id',right_index=True, how='inner')
+        
+        # Traslado el valor de rating a cada genero al que pertenece
+        merged_df.iloc[:, 3:] = merged_df.iloc[:, 3:].astype(float)
+        merged_df.apply(lambda row: Faux.trasladar_rating_a_columnas_generos(row, merged_df), axis=1)
 
-        #- Scores: Puntuación promedio de usuario(s) por año(de película)/género. Puntuación promedio de películas por género de usuario(sexo)/rango etáreo/Ocupación.
+        #Me quedo unicamente con la columna año y todos los generos promediados
+        dfPlot=merged_df.groupby(['year'])[merged_df.iloc[:, 3:-1].columns.tolist()].mean().reset_index()
+        
+        if anios != None:
+            dfPlot = dfPlot[(dfPlot['year'] >= anios[0]) & (dfPlot['year'] <= anios[1])]
+        dfPlotInterpolado=dfPlot.interpolate(inplace=False)
+
+        Faux.plot_lineas_rating_añoPelicula_generos(dfPlot ,dfPlotInterpolado ,generosDeseadosList).show
+        return

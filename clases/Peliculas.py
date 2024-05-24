@@ -18,32 +18,6 @@ def genero_tabla_para_plot(df_tabla,generos):
     return genre_by_year
 
 
-def barplot(tabla):
-
-    # Crear el gráfico de barras apiladas
-    grafico = tabla.plot(kind='bar', stacked=True, figsize=(10, 7))
-
-    # Configurar las etiquetas y el título
-    plt.xlabel('Year')
-    plt.xticks(rotation=45)
-
-    plt.ylabel('Number of Movies')
-    max_y = tabla.sum(axis=1).max() # Calcular el valor máximo del eje y
-    plt.yticks(range(0, int(max_y) + 1, 2))  # Define los saltos discretos desde 0 hasta el valor máximo calculado
-
-    plt.title('Number of Movies per Genre by Year', fontsize=20)  # Ajustar el tamaño del título
-    plt.legend(title='Genre', loc='upper left')  # Ubicar la leyenda arriba a la izquierda
-
-    # Agregar etiquetas de datos dentro de las cajas
-    for container in grafico.containers:
-        for bar in container:
-            height = bar.get_height()
-            width = bar.get_width()
-            x, y = bar.get_xy()
-            grafico.text(x + width / 2, y + height / 2, f'{height:.0f}', ha='center', va='center')
-
-    plt.show()
-
 class Pelicula:
     def __init__(self, nombre, anio, generos, id = None):
         
@@ -186,7 +160,7 @@ class Pelicula:
             generos=filtro.drop(columns=['Release_Date']).columns[5:].tolist()
         generos = faux.elminoCaracterDeLista(generos,caracteresComplejos)
         tabla_para_plot = genero_tabla_para_plot(filtro,generos)
-        barplot(tabla_para_plot)
+        faux.barplot_cantdad_año_generos(tabla_para_plot)
         # - Bar plots con la cantidad de películas por año/género.
  
         return

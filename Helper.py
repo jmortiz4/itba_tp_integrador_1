@@ -1,4 +1,7 @@
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 def load(file):
     return pd.read_csv(file)
@@ -38,3 +41,34 @@ def elminoCaracterDeLista(lista,caracteres):
     for car in caracteres:
         listaOK=[x.replace(car,"") for x in listaOK]
     return listaOK
+
+
+def trasladar_rating_a_columnas_generos(row, merged_df):
+
+    for column in merged_df.columns[3:]:
+        if merged_df.at[row.name, column] == 1:
+            merged_df.at[row.name, column] = row['rating']
+        elif merged_df.at[row.name, column] == 0:
+            merged_df.at[row.name, column] = np.nan
+
+def plot_lineas_añoPelicula_generos(dfPlot,dfPlotInterpolado, generosDeseadosList):
+    # Configurar el gráfico
+    base_color = list(mcolors.BASE_COLORS.values())
+    plt.figure(figsize=(10, 6))
+    counter=0
+    # Trazar las líneas
+    for genero in generosDeseadosList:
+        counter+=1
+        plt.plot(dfPlotInterpolado['year'], dfPlotInterpolado[genero], marker='_', color=base_color[counter],label=genero)
+        plt.scatter(dfPlot['year'], dfPlot[genero], color=base_color[counter])
+  
+
+    # Etiquetas y título
+    plt.xlabel('Año')
+    plt.ylabel('Puntuación Promedio')
+    plt.title('Puntuación Promedio por Año Según Generos')
+    plt.legend()
+
+    # Mostrar el gráfico
+    plt.grid(True)
+    return plt
