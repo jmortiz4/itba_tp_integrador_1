@@ -97,6 +97,7 @@ class Score:
         #Me quedo unicamente con la columna año y todos los generos promediados
         dfPlot=merged_df.groupby(['year'])[merged_df.iloc[:, 3:-1].columns.tolist()].mean().reset_index()
         
+        #Filtro anios especificados
         if anios != None:
             dfPlot = dfPlot[(dfPlot['year'] >= anios[0]) & (dfPlot['year'] <= anios[1])]
         dfPlotInterpolado=dfPlot.interpolate(inplace=False)

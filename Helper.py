@@ -51,7 +51,7 @@ def trasladar_rating_a_columnas_generos(row, merged_df):
         elif merged_df.at[row.name, column] == 0:
             merged_df.at[row.name, column] = np.nan
 
-def plot_lineas_añoPelicula_generos(dfPlot,dfPlotInterpolado, generosDeseadosList):
+def plot_lineas_rating_añoPelicula_generos(dfPlot,dfPlotInterpolado, generosDeseadosList):
     # Configurar el gráfico
     base_color = list(mcolors.BASE_COLORS.values())
     plt.figure(figsize=(10, 6))
@@ -72,3 +72,30 @@ def plot_lineas_añoPelicula_generos(dfPlot,dfPlotInterpolado, generosDeseadosLi
     # Mostrar el gráfico
     plt.grid(True)
     return plt
+
+
+def barplot_cantdad_año_generos(tabla):
+
+    # Crear el gráfico de barras apiladas
+    grafico = tabla.plot(kind='bar', stacked=True, figsize=(10, 7))
+
+    # Configurar las etiquetas y el título
+    plt.xlabel('Year')
+    plt.xticks(rotation=45)
+
+    plt.ylabel('Number of Movies')
+    max_y = tabla.sum(axis=1).max() # Calcular el valor máximo del eje y
+    plt.yticks(range(0, int(max_y) + 1, 2))  # Define los saltos discretos desde 0 hasta el valor máximo calculado
+
+    plt.title('Number of Movies per Genre by Year', fontsize=20)  # Ajustar el tamaño del título
+    plt.legend(title='Genre', loc='upper left')  # Ubicar la leyenda arriba a la izquierda
+
+    # Agregar etiquetas de datos dentro de las cajas
+    for container in grafico.containers:
+        for bar in container:
+            height = bar.get_height()
+            width = bar.get_width()
+            x, y = bar.get_xy()
+            grafico.text(x + width / 2, y + height / 2, f'{height:.0f}', ha='center', va='center')
+
+    plt.show()
