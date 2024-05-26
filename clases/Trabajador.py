@@ -17,40 +17,40 @@ class Trabajador:
         # Este método debe imprimir la información de este trabajador.
         return f'\n {self.id} - {self.fechaAlta} - {self.puesto} - {self.categoria} - {self.horarioTrabajo}'
     
-    def write_df(self, df_mov):
+    def write_df(self, df_trabajadores):
         # Este método recibe el dataframe de Trabajadores y agrega el nuevo trabajador
         # Si el id es None, toma el id más alto del DF y le suma uno. Si el 
         # id ya existe, no la agrega y devuelve un error.
 
         if self.id == None:
-            self.id=df_mov['id'].max()+1
-        elif self.id in df_mov['id'].values:
+            self.id=df_trabajadores['id'].max()+1
+        elif self.id in df_trabajadores['id'].values:
             print('Error: No se pudo agregar, id ya existente')
-            return df_mov
+            return df_trabajadores
 
-        new_row = {'id': self.id, 'Position': self.puesto, 'Category': self.categoria, 'Working Hours': self.horarioTrabajo, 'Start Date': self.fechaAlta}
+        new_row = {'id': self.id, 'Position': self.puesto, 'Category': self.categoria, 'Working_Hours': self.horarioTrabajo, 'Start_Date': self.fechaAlta}
         new_row_df = pd.DataFrame([new_row])
-        df_mov = pd.concat([df_mov, new_row_df], ignore_index=True)
+        df_trabajadores = pd.concat([df_trabajadores, new_row_df], ignore_index=True)
         
         # Guardar el DataFrame actualizado en el archivo CSV
-        df_mov.to_csv('../data/trabajadores.csv', index=False)
+        df_trabajadores.to_csv('../data/trabajadores.csv', index=False)
         
-        return df_mov
+        return df_trabajadores
 
-    # def remove_from_df(self, df_mov):
+    # def remove_from_df(self, df_trabajadores):
     #     # Borra del DataFrame el objeto contenido en esta clase.
     #     # Para realizar el borrado todas las propiedades del objeto deben coincidir
     #     # con la entrada en el DF. Caso contrario imprime un error.
         
-    #     fila_a_borrar=self.get_from_df(df_mov, id=self.id, nombre = self.nombre, anios = [self.anio,self.anio], generos = self.generos)
+    #     fila_a_borrar=self.get_from_df(df_trabajadores, id=self.id, nombre = self.nombre, anios = [self.anio,self.anio], generos = self.generos)
     #     if len(fila_a_borrar)==1:
-    #         return df_mov.drop(df_mov[df_mov['id'] == fila_a_borrar[0].id].index)
+    #         return df_trabajadores.drop(df_trabajadores[df_trabajadores['id'] == fila_a_borrar[0].id].index)
 
     #     else:
     #         print("No existe en el df recibido una película exactamente igual a la que invoca esta acción")
-    #         return df_mov
+    #         return df_trabajadores
         
-        return df_mov
+        return df_trabajadores
 
     @classmethod
     def create_df_from_csv(cls, filename):
@@ -59,24 +59,25 @@ class Trabajador:
         # archivo 'filename'.
         
         df = pd.read_csv(filename)
-        
-        df['DateNorm'] = pd.to_datetime(df['Start Date'], format='%Y-%m-%d')
+        df = df.rename(columns={'Working Hours': 'Working_Hours'})
+        df = df.rename(columns={'Start Date': 'Start_Date'})
+
         
         df=faux.eliminoCaracterDeColumnasDF(df,["'","-"])
 
         return df
     
     @classmethod
-    def convertir_a_trabajadores(cls,df_mov):
+    def convertir_a_trabajadores(cls,df_trabajadores):
         # Este class method recibe un df y devuelve un listado de trabajadores
         lista_trabajadores = []
         # Itera sobre cada fila del DataFrame
-        for index, row in df_mov.iterrows():
+        for index, row in df_trabajadores.iterrows():
             # Crea un objeto Trabajador con los datos de la fila actual
-            puesto = row['Position'][:row['Position'].rfind(' (')]
-            categoria = row['Category'][:row['Category'].rfind(' (')]
-            horarioTrabajo = row['Working Hours'][:row['Working Hours'].rfind(' (')]
-            fechaAlta = row['Start Date'][:row['Start Date'].rfind(' (')]
+            puesto = row['Position']
+            categoria = row['Category']
+            horarioTrabajo = row['Working_Hours']
+            fechaAlta = row['Start_Date']
 
             # Pasa los argumentos usando el nombre de los parámetros
             trabajador = Trabajador(id=row['id'], fechaAlta=fechaAlta, puesto=puesto, categoria=categoria, horarioTrabajo=horarioTrabajo)
@@ -85,43 +86,49 @@ class Trabajador:
 
         return lista_trabajadores
 
-    # @classmethod
-    # def filtrar_df(cls, df_mov, id=None, nombre = None, anios = None, generos = None):
-    #     queryText=''
-
-    #     if id!=None:
-    #         queryText+='id=='+ str(id) + ' and '
-
-    #     if nombre!=None:
-    #         queryText+='Name.str.contains("' + nombre + '", case=False)'+ ' and '
-
-    #     if anios!=None:
-    #         desde,hasta=anios
-    #         queryText+='DateNorm >= "' + str(desde)+'-01-01' +'" and DateNorm <= "'+ str(hasta)+'-12-31' + '"'+ ' and '
-
-    #     if generos!=None:
-    #         generos = faux.elminoCaracterDeLista(generos,caracteresComplejos)# corrijo caracteres problematicos '-
-    #         generosR = [x + "== 1 and " for x in generos] 
-    #         queryText+=''.join(generosR)
+    @classmethod
+    def filtrar_df(cls, df_trabajadores, id=None, puesto = None, categoria = None, horarioTrabajo = None):
+        if not isinstance(df_trabajadores, pd.DataFrame):
+            print("Error: df_trabajadores no es un DataFrame válido")
+            return None
         
-    #    #Se castea a todo menos los ultimos 5 caracteres ya que son un " and " adicional con el que siempre termina la query
-    #     return df_mov.query(queryText[:-5], engine="python")
+        queryText=''
 
-    # @classmethod
-    # def get_from_df(cls, df_mov, id=None, nombre = None, anios = None, generos = None):
+        if id!=None:
+            queryText+='id=='+ str(id) + ' and '
+
+        if puesto!=None:
+            queryText+='Position.str.contains("' + puesto + '", case=False)'+ ' and '
+
+        if categoria!=None:
+            queryText+='Category.str.contains("' + categoria + '", case=False)'+ ' and '
+
+        if horarioTrabajo!=None:
+            queryText += "Working_Hours.str.contains('" + horarioTrabajo + "', case=False)"+ ' and '
+        
+        # Se elimina el último "and" si existe
+        if queryText.endswith(' and '):
+            queryText = queryText[:-5]
+
+       #Se castea a todo menos los ultimos 5 caracteres ya que son un " and " adicional con el que siempre termina la query
+        return df_trabajadores.query(queryText, engine="python")
     
-    #     filtro=cls.filtrar_df(df_mov, id=id, nombre=nombre, anios=anios, generos=generos)
-    #     return cls.ConvertirAPeliculas(df_mov=filtro)
+
+    @classmethod
+    def get_from_df(cls, df_trabajadores, id=None, puesto = None, categoria = None, horarioTrabajo = None):
+    
+        filtro=cls.filtrar_df(df_trabajadores, id=id, puesto=puesto, categoria=categoria, horarioTrabajo=horarioTrabajo)
+        return cls.convertir_a_trabajadores(df_trabajadores=filtro)
 
     # @classmethod
-    # def get_stats(cls,df_mov, anios=None, generos=None):
+    # def get_stats(cls,df_trabajadores, anios=None, generos=None):
     #     # Este class method imprime una serie de estadísticas calculadas sobre
-    #     # los resultados de una consulta al DataFrame df_mov. 
+    #     # los resultados de una consulta al DataFrame df_trabajadores. 
     #     # Las estadísticas se realizarán sobre las filas que cumplan con los requisitos de:
     #     # anios: [desde_año, hasta_año]
     #     # generos: [generos]
     #     # Las estadísticas son:
-    #     filtro = cls.filtrar_df(df_mov, anios = anios, generos= generos)
+    #     filtro = cls.filtrar_df(df_trabajadores, anios = anios, generos= generos)
 
     #     fecha_minima = filtro['DateNorm'].min()
     #     PelisMasAntigua=filtro[filtro['DateNorm'] == fecha_minima]
