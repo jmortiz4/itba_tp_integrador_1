@@ -37,19 +37,13 @@ class Trabajador:
         
         return df_trabajadores
 
-    # def remove_from_df(self, df_trabajadores):
-    #     # Borra del DataFrame el objeto contenido en esta clase.
-    #     # Para realizar el borrado todas las propiedades del objeto deben coincidir
-    #     # con la entrada en el DF. Caso contrario imprime un error.
+    def remove_from_df(self, df_trabajadores):
+        # Borra del DataFrame el objeto contenido en esta clase.
+        df_trabajadores = df_trabajadores[df_trabajadores['id'] != self.id]
         
-    #     fila_a_borrar=self.get_from_df(df_trabajadores, id=self.id, nombre = self.nombre, anios = [self.anio,self.anio], generos = self.generos)
-    #     if len(fila_a_borrar)==1:
-    #         return df_trabajadores.drop(df_trabajadores[df_trabajadores['id'] == fila_a_borrar[0].id].index)
+        # Guardar el DataFrame actualizado en el archivo CSV
+        df_trabajadores.to_csv('../data/trabajadores.csv', index=False)
 
-    #     else:
-    #         print("No existe en el df recibido una película exactamente igual a la que invoca esta acción")
-    #         return df_trabajadores
-        
         return df_trabajadores
 
     @classmethod
