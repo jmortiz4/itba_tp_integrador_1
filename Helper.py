@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import seaborn as sns
 
 def load(file):
     return pd.read_csv(file)
@@ -98,4 +99,49 @@ def barplot_cantdad_año_generos(tabla):
             x, y = bar.get_xy()
             grafico.text(x + width / 2, y + height / 2, f'{height:.0f}', ha='center', va='center')
 
+    plt.show()
+
+
+def barplot_comparativo_edad_genero_rating(df):
+
+    # Crear bins de 5 años para las edades
+    colors = {'F': 'salmon', 'M': 'turquoise'}
+    bins = range(df['age'].min(), df['age'].max(), 5)  # Ajustar según el rango de edades en los datos
+    labels = [f'{i}-{i+4}' for i in bins[:-1]]
+    df['age_bin'] = pd.cut(df['age'], bins=bins, labels=labels, right=False)
+
+    # Calcular el promedio de calificaciones por bin de edad y género
+    average_ratings = df.groupby(['age_bin', 'Gender'])['rating'].mean().reset_index()
+
+
+    # Crear un gráfico de barras comparativas
+    plt.figure(figsize=(14, 7))
+    sns.barplot(data=average_ratings, x='age_bin', y='rating', palette=colors,hue='Gender')
+    plt.title('Puntuación promedio por Rango Etario comparando Generos')
+    plt.xlabel('Rango Etario')
+    plt.ylabel('Promedio Puntuación')
+    plt.legend(title='Genero')
+    plt.grid(True)
+
+    plt.show()
+
+def kdeplot_edad_genero_rating(df):
+    # Crear gráficos de distribución separados por género
+    plt.figure(figsize=(14, 6))
+
+    # Gráfico para género masculino
+    plt.subplot(1, 2, 1)
+    sns.kdeplot(x='age', y='rating', data=df[df['Gender'] == 'M'], fill=True, cmap='Blues', alpha=0.6)
+    plt.title('Distribution Plot for Males')
+    plt.xlabel('Age')
+    plt.ylabel('Rating')
+
+    # Gráfico para género femenino
+    plt.subplot(1, 2, 2)
+    sns.kdeplot(x='age', y='rating', data=df[df['Gender'] == 'F'], fill=True, cmap='Reds', alpha=0.6)
+    plt.title('Distribution Plot for Females')
+    plt.xlabel('Age')
+    plt.ylabel('Rating')
+
+    plt.tight_layout()
     plt.show()

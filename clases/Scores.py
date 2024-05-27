@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import Helper as Faux
+from datetime import datetime
 
 class Score:
     def __init__(self, timestamp, puntuacion, idPelicula, idUsuario):
@@ -104,3 +105,22 @@ class Score:
 
         Faux.plot_lineas_rating_añoPelicula_generos(dfPlot ,dfPlotInterpolado ,generosDeseadosList).show
         return
+
+    @classmethod
+    def puntuacion_edad_genero(cls,df_personas,df_sco):
+        users_agrupado=df_sco.groupby('user_id')['rating'].mean().reset_index()
+        merged_users_scores_df = pd.merge(users_agrupado, df_personas[['year_of_birth','Gender']],right_on='id', left_on="user_id", how='inner')
+        merged_users_scores_df['age'] = datetime.now().year - merged_users_scores_df['year_of_birth']
+        merged_users_scores_df_grouped=merged_users_scores_df.groupby(['Gender','age'])['rating'].mean().reset_index()
+
+        #Grafico de Barras
+        Faux.barplot_comparativo_edad_genero_rating(merged_users_scores_df_grouped)
+
+        #Distribution Plot
+        Faux.kdeplot_edad_genero_rating(merged_users_scores_df)
+
+        return
+
+#Puntuación promedio de películas por género de usuario(sexo) - personas
+#Puntuación promedio de películas por rango etáreo - personas
+#Puntuación promedio de películas por Ocupación.
