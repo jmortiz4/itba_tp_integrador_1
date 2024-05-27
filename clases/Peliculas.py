@@ -51,9 +51,7 @@ class Pelicula:
         return df_mov
 
     def remove_from_df(self, df):
-        # Borra del DataFrame el objeto contenido en esta clase.
-        # Para realizar el borrado todas las propiedades del objeto deben coincidir
-        # con la entrada en el DF. Caso contrario imprime un error.
+        
 
         df_mov= df.copy()
         

@@ -145,3 +145,14 @@ def kdeplot_edad_genero_rating(df):
 
     plt.tight_layout()
     plt.show()
+
+def HorizontalBarplot_usuario_rating(df):
+    # Crear un gráfico de barras horizontales comparativas con la paleta 'pastel'
+        df['ocupacion'] = df['ocupacion'].str.capitalize()
+        plt.figure(figsize=(10, 7))
+        sns.barplot(data=df, y='ocupacion', x='rating', orient='h')
+        plt.title('Puntuacion promedio por profesión')
+        plt.ylabel('Ocupacion')
+        plt.xlabel('Puntuacion promedio')
+        plt.grid(True)
+        plt.show()

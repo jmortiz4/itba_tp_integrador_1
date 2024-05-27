@@ -50,10 +50,7 @@ class Score:
         
     @classmethod
     def create_df_from_csv(cls, filename):
-        # Este class method recibe el nombre de un archivo csv, valida su 
-        # estructura y devuelve un DataFrame con la información cargada del
-        # archivo 'filename'.
-        ###
+        
         df = pd.read_csv(filename, index_col=0)
         df['Date'] = pd.to_datetime(df['Date'])
        
@@ -121,6 +118,8 @@ class Score:
 
         return
 
-#Puntuación promedio de películas por género de usuario(sexo) - personas
-#Puntuación promedio de películas por rango etáreo - personas
-#Puntuación promedio de películas por Ocupación.
+    @classmethod
+    def puntuacion_ocupacion_rating(cls,df_usuarios,df_sco):
+        users_agrupado=df_sco.groupby('user_id')['rating'].mean().reset_index()
+        merged_users_scores_df = pd.merge(users_agrupado, df_usuarios,right_on='id', left_on="user_id", how='inner')
+        Faux.HorizontalBarplot_usuario_rating(merged_users_scores_df)
