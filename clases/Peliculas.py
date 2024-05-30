@@ -1,8 +1,7 @@
 import sys
 sys.path.append('../')
-import pandas as pd
 import Helper as faux
-import matplotlib.pyplot as plt
+import pandas as pd
 
 caracteresComplejos=["'","-"]
 
@@ -71,9 +70,7 @@ class Pelicula:
         # estructura y devuelve un DataFrame con la información cargada del
         # archivo 'filename'.
         ###
-        df = pd.read_csv(filename)
-        #Falta la validacion --> Hacerla por regex --> Hay algo más nativo ?
-       
+        df = pd.read_csv(filename)   
         df.set_index('id', inplace=True)
         df.columns = [col.replace(' ', '_') for col in df.columns]
         df['Release_Date'] = pd.to_datetime(df['Release_Date'], format='%d-%b-%Y')

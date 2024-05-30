@@ -1,25 +1,11 @@
 
 import pandas as pd
-import Helper as faux
+import Persona as Persona
 
-caracteresComplejos=["'","-"]
-
-class Persona:
-    def __init__(self, id=None, fecha_nac=None, genero=None, cod_postal=None):
-        self.id = id 
-        self.fecha_nac = fecha_nac
-        self.genero = genero 
-        self.cod_postal = cod_postal
-
-    def __repr__(self):
-       # return f'Persona(id={self.id}, fecha_nac={self.fecha_nac},genero={self.genero}, cod_postal={self.cod_postal})'
-         return f'id={self.id}, fecha_nac={self.fecha_nac},genero={self.genero}, cod_postal={self.cod_postal}'
-
-       
 class Usuario(Persona):
     
-    def __init__(self, id=None, fecha_nac=None, genero=None, cod_postal=None, ocupacion=None, fecha_alta=None):
-        super().__init__(id, fecha_nac, genero, cod_postal)
+    def __init__(self, id=None, fecha_nac=None, genero=None, cod_postal=None, ocupacion=None, fecha_alta=None, fullname=None):
+        super().__init__(id=id, FullName=fullname, fecha_nac=fecha_nac, Gender=genero, cod_postal=cod_postal)
         self.ocupacion = ocupacion
         self.fecha_alta = fecha_alta
 
@@ -35,7 +21,6 @@ class Usuario(Persona):
         # archivo 'filename'.
         ###
         df = pd.read_csv(filename)
-        
         df['Active Since'] = pd.to_datetime(df['Active Since'], format='%Y-%m-%d %H:%M:%S')
         df = df.rename(columns={'Active Since':'fecha_alta','Occupation':'ocupacion'})
         return df

@@ -1,40 +1,47 @@
 import pandas as pd
-import Funciones_Auxiliares as faux
+import sys
+sys.path.append('../')
+import Helper as faux
+import math
 
 
 # Personas: Cantidad de personas por año de nacimiento y Género. Cantidad total de personas.
 class Persona:
-    def __init__(self, id, FullName, yearOfBirth, Gender , ZipCode):
+    def __init__(self, fullname, yearOfBirth, gender , zipcode, id=None):
         self.id = id
-        self.FullName = FullName
-        self.yearOfBirth = yearOfBirth
-        self.Gender = Gender
-        self.ZipCode = ZipCode
+        self.fullName = fullname
+        self.yearOfBirth = int(yearOfBirth)
+        self.gender = gender
+        self.zipcode = zipcode
         
     def __repr__(self):
         # Este método debe imprimir la información de esta persona.
-        return f'\n [{self.id}] {self.FullName} {self.yearOfBirth} {self.Gender} {self.ZipCode} ' 
+        return f'\n [{self.id}] {self.fullName} ({self.yearOfBirth}) -{self.gender.replace("M","Masculino").replace("F","Femenino")}- CP:{self.zipcode} ' 
     
-    def write_df(self, df_persona):
-        # Este método recibe el dataframe de personas y agrega personas
-        # Si el id es None, toma el id más alto del DF y le suma uno. Si el 
-        # id ya existe, no la agrega y devuelve un error.
-
+    def write_df(self, df):
+        
+        df_persona = df.copy()
         if self.id == None:
-            self.id=df_persona['id'].max()+1
-        elif self.id in df_persona['id'].values:
+            self.id=df_persona.index.max()+1
+        elif self.id in df_persona.index:
             print('Error: No se pudo agregar, id ya existente')
             return df_persona
+            
+        new_row = {'Full_Name': self.fullName, 'year_of_birth' : self.yearOfBirth, 'Gender' : self.gender, 'Zip_Code' : self.zipcode }
+        df_persona.loc[self.id] = new_row
 
-    def remove_from_df(self, df_persona):
+            
+        return df_persona
+        
+    def remove_from_df(self, df):
         # Borra del DataFrame el objeto contenido en esta clase.
         # Para realizar el borrado todas las propiedades del objeto deben coincidir
         # con la entrada en el DF. Caso contrario imprime un error.
-    
+        df_persona= df.copy()
         
-        fila_a_borrar=self.get_from_df(df_persona, id=self.id, FullName = self.FullName, yearOfBirth = self.yearOfBirth, Gender = self.Gender, ZipCode = self.ZipCode)
+        fila_a_borrar=self.filtrar_df(df_persona, id=self.id, FullName = self.fullName, yearOfBirth = self.yearOfBirth, Gender = self.gender, ZipCode = self.zipcode)
         if len(fila_a_borrar)==1:
-            return df_persona.drop(df_persona[df_persona['id'] == fila_a_borrar[0].id].index)
+            return df_persona.drop(fila_a_borrar.index)
 
         else:
             print("No existe en el df recibido una persona exactamente igual a la que invoca esta acción")
@@ -42,18 +49,11 @@ class Persona:
 
     @classmethod
     def create_df_from_csv(cls, file_personas):
-        # Este class method recibe el nombre de un archivo csv, valida su 
-        # estructura y devuelve un DataFrame con la información cargada del
-        # archivo 'filename'.
-        ###
-        df = pd.read_csv(file_personas)
-        #Falta la validacion --> Hacerla por regex --> Hay algo más nativo ?
-        df['DateNorm'] = pd.to_datetime(df['Release Date'], format='%d-%b-%Y')
-        
-        df=faux.eliminoCaracterDeColumnasDF(df,["'","-"])
        
-        ###
-        return df
+        df_personas = pd.read_csv(file_personas , index_col=0) 
+        df_personas=faux.reemplazo_espacios_por_guion_bajo(df_personas)
+  
+        return df_personas
     
     @classmethod
     def ConvertirAPersonas(cls,df_persona):
@@ -62,14 +62,11 @@ class Persona:
         # Itera sobre cada fila del DataFrame
         for index, row in df_persona.iterrows():
             # Crea un objeto Persona con los datos de la fila actual
-            
-            FullName=row['Full Name'][:row['Full Name'].rfind(' (')]
-            # Una forma de calcular el año --> anio=int(row['Name'][row['Name'].rfind(' (')+2:-1])
-            yearOfBirth=row['DateNorm'].year # aprovechando que tenemos una columna dateTime
-            Gender=row['Gender'][:row['Gender'].rfind(' (')]
-            ZipCode=row['Zip Code'][:row['Zip Code'].rfind(' (')]
-            person = Persona(FullName, yearOfBirth, Gender , ZipCode, id=row['id'])
-            # Agrega el objeto Pelicula a la lista
+            FullName=row['Full_Name']
+            yearOfBirth=row['year_of_birth'] 
+            Gender=row['Gender']
+            ZipCode=row['Zip_Code']
+            person = Persona(fullname=FullName, yearOfBirth=yearOfBirth, gender=Gender , zipcode=ZipCode, id=index)
             lista_personas.append(person)
 
         return lista_personas
@@ -82,17 +79,21 @@ class Persona:
             queryText+='id=='+ str(id) + ' and '
 
         if FullName!=None:
-            queryText+='FullName.str.contains("' + FullName + '", case=False)'+ ' and '
+            queryText+='Full_Name.str.contains("' + FullName + '", case=False)'+ ' and '
 
         if yearOfBirth!=None:
-            queryText+='DateNorm >= "' + str(yearOfBirth) + ' and '
+            if isinstance(yearOfBirth,int):
+                desde=yearOfBirth
+                hasta=yearOfBirth
+            else:
+                desde,hasta=yearOfBirth
+            queryText+='year_of_birth >= '+str(desde)+' and year_of_birth <= '+str(hasta)+' and '
             
         if Gender!=None:
-            queryText+='Gender.str.contains("' + Gender + '", case=False)'+ ' and '
+            queryText+='Gender == \'' + Gender + '\' and '
             
         if ZipCode!=None:
-            queryText+='ZipCode.str.contains("' + ZipCode + '", case=False)'+ ' and '
-        
+            queryText+='Zip_Code == \'' + ZipCode + '\' and '
         
        #Se castea a todo menos los ultimos 5 caracteres ya que son un " and " adicional con el que siempre termina la query
         return df_persona.query(queryText[:-5], engine="python")
@@ -113,37 +114,17 @@ class Persona:
         # Gender: [Gender]
         # Las estadísticas son:
         filtro = cls.filtrar_df(df_persona, yearOfBirth = yearOfBirth, Gender= Gender)
-
-        #Cuanto es el total de personas
-        #id_max = filtro['id'].max()
-        
-        # opcion b --> TotalPersonas=len(df_persona)
-        TotalPersonas = df_persona['id'].nunique()
+        TotalPersonas=filtro.shape[0]
+        filtroAgrupado = filtro.groupby(['year_of_birth', 'Gender']).size().unstack(fill_value=0)
         print("El Total de Personas es: ",TotalPersonas)
-        
-        #TotalFemenino=filtro[filtro['Gender'] == 'F']
-        #TotalMasculino=filtro[filtro['Gender'] == 'M']
-        #Total por genero        
-        TotalFemenino=df_persona['F'].value_counts()
-        TotalMasculino=df_persona['M'].value_counts()
-        print("La cantidad de Personas Femeninas es : ",TotalFemenino)
-        print("La cantidad de Personas Masculinas es : ",TotalMasculino)
-        print("El pocentaje de Personas Femeninas es : ",TotalFemenino*100/TotalPersonas)
-        print("El pocentaje de Personas Femeninas es : ",TotalFemenino*100/TotalPersonas)
-    
-        #Obtener un array con los diferentes años en que nacieron las personas
-        CantidadAnios=df_persona['Release Date'].nunique()
-        print(CantidadAnios)
+        if Gender!='M':
+            TotalFemenino=filtroAgrupado['F'].sum()
+            print(f'Femeninas: {TotalFemenino} ({round((TotalFemenino*100/TotalPersonas),1)}%)')
 
-        #Funcion que convierte el array en una lista
-        listaanios=CantidadAnios.tolist()
+        if Gender!='F':
+            TotalMasculino=filtroAgrupado['M'].sum()
+            print(f'Masculinos: {TotalMasculino} ({round((TotalMasculino*100/TotalPersonas),1)}%)')
         
-        #For que recorre la lista de los diferentes años en que nacieron las personas
-        for n in listaanios:
-            count=0
-            #For que cuenta cuantas personas nacieron por año
-            for j in df_persona['year of birth']:
-                if j==n:
-                    count=count+1
-        print("Para el año ",n," hay ",count," personas")
+        faux.plot_lineas_genero_añoNacimiento(filtroAgrupado)
+    
         

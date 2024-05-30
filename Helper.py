@@ -3,19 +3,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import seaborn as sns
+import sys
+sys.path.append('../') 
 
-def load(file):
-    return pd.read_csv(file)
+
 
 def load_all(file_personas='personas.csv', file_trabajadores='trabajadores.csv', file_usuarios='usuarios.csv', file_peliculas='peliculas.csv', file_scores='scores.csv'):
     
-    df_peliculas =load(file_peliculas)
-    df_personas = load(file_personas)
-    df_usuarios = load(file_usuarios)
-    df_trabajadores= load(file_trabajadores)
-    df_scores = load(file_scores)
+    #df_peliculas =Pelicula.create_df_from_csv(file_peliculas)
+    ##df_personas = Persona.create_df_from_csv(file_personas)
+    #df_usuarios = Usuario.create_df_from_csv(file_usuarios)
+    #df_trabajadores= Trabajador.create_df_from_csv(file_trabajadores)
+    #df_scores = Score.create_df_from_csv(file_scores)
 
-    return df_personas, df_trabajadores, df_usuarios, df_peliculas, df_scores
+    #return df_personas, df_trabajadores, df_usuarios, df_peliculas, df_scores
+    return 
+
+
 
 
 def save_all(df_personas, df_trabajadores, df_usuarios, df_peliculas, df_scores,
@@ -23,6 +27,10 @@ def save_all(df_personas, df_trabajadores, df_usuarios, df_peliculas, df_scores,
                 file_usuarios="usuarios.csv", file_peliculas="peliculas.csv", file_scores="scores.csv"):
     #Código de Salvado
     return 0 # O -1 si hubo algún error 
+
+def reemplazo_espacios_por_guion_bajo(df):
+    df.columns = [col.replace(' ', '_') for col in df.columns]
+    return df
 
 
 def eliminoCaracterDeColumnasDF(df,caracteres):
@@ -156,3 +164,26 @@ def HorizontalBarplot_usuario_rating(df):
         plt.xlabel('Puntuacion promedio')
         plt.grid(True)
         plt.show()
+
+
+def plot_lineas_genero_añoNacimiento(df):
+
+    # Graficar los datos
+    # Colores para cada género
+    colors = {'M': 'blue', 'F': 'red'}
+
+    # Graficar cada género por separado
+    plt.figure(figsize=(10, 6))
+    for gender in df.columns:
+        plt.plot(df.index, df[gender], marker='o', color=colors[gender], label='Masculino' if gender == 'M' else 'Femenino')
+
+       # Configurar el título y etiquetas de los ejes
+    
+    plt.title('Personas por género agrupados por año de nacimiento')
+    plt.xlabel('Año de Nacimiento')
+    plt.ylabel('Personas')
+    plt.grid(True)
+    plt.legend(title='Género')
+
+    # Mostrar el gráfico
+    plt.show()

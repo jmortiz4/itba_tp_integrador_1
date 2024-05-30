@@ -47,6 +47,23 @@ class Score:
         else:
            print("No existe en el df recibido una película exactamente igual a la que invoca esta acción")
         return df_sco
+    
+    @classmethod
+    def ConvertirAScores(cls,df_sco):
+        # Este class method recibe un df y devuelve un listado de peliculas
+        lista_scores = []
+        # Itera sobre cada fila del DataFrame
+        for index, row in df_sco.iterrows():
+            # Crea un objeto Pelicula con los datos de la fila actual
+            puntuacion = row['rating']
+            idPelicula=row['movie_id']
+            idUsuario=row['user_id']
+            timestamp=row['timestamp']
+            score = Score(timestamp, puntuacion, idPelicula, idUsuario)
+            # Agrega el objeto Pelicula a la lista
+            lista_scores.append(score)
+
+        return lista_scores
         
     @classmethod
     def create_df_from_csv(cls, filename):
@@ -72,7 +89,8 @@ class Score:
         
         queryText=queryText[:-5]#Se castea a todo menos los ultimos 5 caracteres ya que son un " and " adicional 
     
-        return df_sco.query(queryText, engine="python")
+        filtro= df_sco.query(queryText, engine="python")
+        return cls.ConvertirAScores(filtro)
     
     @classmethod
     def obtener_rating_promedio_variable(cls, df_sco,variable='user_id'):
