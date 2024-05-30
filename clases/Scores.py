@@ -133,7 +133,6 @@ class Score:
 
         #Distribution Plot
         Faux.kdeplot_edad_genero_rating(merged_users_scores_df)
-
         return
 
     @classmethod
@@ -141,3 +140,4 @@ class Score:
         users_agrupado=df_sco.groupby('user_id')['rating'].mean().reset_index()
         merged_users_scores_df = pd.merge(users_agrupado, df_usuarios,right_on='id', left_on="user_id", how='inner')
         Faux.HorizontalBarplot_usuario_rating(merged_users_scores_df)
+        return

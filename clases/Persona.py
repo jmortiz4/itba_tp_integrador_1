@@ -2,7 +2,6 @@ import pandas as pd
 import sys
 sys.path.append('../')
 import Helper as faux
-import math
 
 
 # Personas: Cantidad de personas por año de nacimiento y Género. Cantidad total de personas.
@@ -10,8 +9,8 @@ class Persona:
     def __init__(self, fullname, yearOfBirth, gender , zipcode, id=None):
         self.id = id
         self.fullName = fullname
-        self.yearOfBirth = int(yearOfBirth)
-        self.gender = gender
+        self.yearOfBirth =yearOfBirth
+        self.gender = "-" if gender == None else gender
         self.zipcode = zipcode
         
     def __repr__(self):

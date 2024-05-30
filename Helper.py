@@ -187,3 +187,16 @@ def plot_lineas_genero_añoNacimiento(df):
 
     # Mostrar el gráfico
     plt.show()
+
+
+def heatmap_ocupacion_nacimiento(grouped_data):
+    # Crear el mapa de calor
+    plt.figure(figsize=(12, 8))
+    pivot_table = grouped_data.pivot( "ocupacion", "year_of_birth","count")
+    sns.heatmap(pivot_table,cmap="crest")
+    plt.title("Mapa de Calor de Ocupaciones por Año de Nacimiento")
+    plt.xlabel("Año de Nacimiento")
+    plt.yticks(rotation=0)
+    plt.xticks(rotation=90)
+    plt.ylabel("Ocupación")
+    return plt.show()
