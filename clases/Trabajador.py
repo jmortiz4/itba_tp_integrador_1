@@ -2,11 +2,31 @@ import sys
 sys.path.append('../') 
 import pandas as pd
 import Helper as faux
+from clases.Persona import Persona
+
 
 caracteresComplejos=["'","-"]
 
-class Trabajador:
-    def __init__(self, puesto, categoria, horarioTrabajo, fechaAlta, id=None):
+class Trabajador(Persona):
+    
+    def __init__(self, puesto, categoria, horarioTrabajo, fechaAlta, id=None,
+                 fecha_nac=None, genero=None, cod_postal=None, fullname=None):
+        if id is not None:
+            # Si se proporciona un ID, cargamos los datos de la persona
+            personas = Persona.ConvertirAPersonas(Persona.create_df_from_csv("../data/personas.csv"))
+            for p in personas:
+                if p.id == id:
+                    persona = p
+                    break
+            else:
+                raise ValueError(f"No se encontró ninguna persona con el ID {id}")
+
+            fecha_nac = persona.yearOfBirth
+            genero = persona.gender
+            cod_postal = persona.zipcode
+            fullname = persona.fullName
+
+        super().__init__(id=id, fullname=fullname, yearOfBirth=fecha_nac, gender=genero, zipcode=cod_postal)
         self.id = id
         self.puesto = puesto
         self.categoria = categoria
@@ -15,9 +35,9 @@ class Trabajador:
 
     def __repr__(self):
         # Este método debe imprimir la información de este trabajador.
-        return f'\n {self.id} - {self.fechaAlta} - {self.puesto} - {self.categoria} - {self.horarioTrabajo}'
+        return f'\n {Persona.__repr__(self)} - {self.id} - {self.fechaAlta} - {self.puesto} - {self.categoria} - {self.horarioTrabajo}'
     
-    def write_df(self, df_trabajadores):
+    def write_df_trabajador(self, df_trabajadores):
         # Este método recibe el dataframe de Trabajadores y agrega el nuevo trabajador
         # Si el id es None, toma el id más alto del DF y le suma uno. Si el 
         # id ya existe, no la agrega y devuelve un error.
@@ -36,6 +56,40 @@ class Trabajador:
         df_trabajadores.to_csv('../data/trabajadores.csv', index=False)
         
         return df_trabajadores
+    
+    def write_df(self, df_personas, df_trabajadores):
+        #Busco el ultimo ID del archivo de personas y sumo uno
+        if self.id == None:
+            self.id=df_personas.index.max()+1
+        elif self.id in df_trabajadores['id'].values:
+            print('Error: No se pudo agregar, id ya existente en archivo de trabajadores')
+            return df_personas,df_trabajadores
+        elif self.id in df_personas['id'].values:
+            print('Error: No se pudo agregar, id ya existente en archivo de personas')
+            return df_personas,df_trabajadores
+
+        # Agregar el nuevo trabajador al dataframe de trabajadores
+        df_trabajadores = Trabajador.write_df_trabajador(self, df_trabajadores)
+
+        # Crear un DataFrame para la nueva fila de personas
+        new_row = pd.DataFrame({'id': [self.id],
+                                'Full_Name': [self.fullName],
+                                'year_of_birth': [self.yearOfBirth],
+                                'Gender': [self.gender],
+                                'Zip_Code': [self.zipcode]})
+
+        # Concatenar el nuevo trabajador al DataFrame de personas
+        df_personas = pd.concat([df_personas, new_row], ignore_index=True)
+
+        # Restaurar el índice de df_personas
+        df_personas.reset_index(drop=True, inplace=True)
+
+
+        # Guardar los dataframes actualizados en los archivos CSV
+        df_trabajadores.to_csv('../data/trabajadores.csv', index=False)
+        df_personas.to_csv('../data/personas.csv', index=False)
+
+        return df_personas, df_trabajadores
 
     def remove_from_df(self, df_trabajadores):
         # Borra del DataFrame el objeto contenido en esta clase.

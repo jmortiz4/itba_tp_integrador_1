@@ -49,7 +49,7 @@ class Persona:
     @classmethod
     def create_df_from_csv(cls, file_personas):
        
-        df_personas = pd.read_csv(file_personas , index_col=0) 
+        df_personas = pd.read_csv(file_personas) 
         df_personas=faux.reemplazo_espacios_por_guion_bajo(df_personas)
   
         return df_personas

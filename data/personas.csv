@@ -1,4 +1,4 @@
-id,Full Name,year of birth,Gender,Zip Code
+id,Full_Name,year_of_birth,Gender,Zip_Code
 1,Robert Stanley,1974,M,85711
 2,Heather Bossey,1945,F,94043
 3,Don Davis,1975,M,32067
@@ -942,3 +942,6 @@ id,Full Name,year of birth,Gender,Zip Code
 941,Quinton Reamer,1978,M,97229
 942,Ruby Bridges,1950,F,78209
 943,Dannie Cintron,1976,M,77841
+943,Juan Perez,1990,M,E2E3R
+944,Juan Perez,1990,M,E2E3R
+945,Juan Perez,1990,M,E2E3R
