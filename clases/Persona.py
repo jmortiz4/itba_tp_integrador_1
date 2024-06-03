@@ -65,7 +65,8 @@ class Persona:
             yearOfBirth=row['year_of_birth'] 
             Gender=row['Gender']
             ZipCode=row['Zip_Code']
-            person = Persona(fullname=FullName, yearOfBirth=yearOfBirth, gender=Gender , zipcode=ZipCode, id=index)
+            id=row['id']
+            person = Persona(fullname=FullName, yearOfBirth=yearOfBirth, gender=Gender , zipcode=ZipCode, id=id)
             lista_personas.append(person)
 
         return lista_personas

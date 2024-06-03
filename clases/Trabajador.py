@@ -52,15 +52,12 @@ class Trabajador(Persona):
         new_row_df = pd.DataFrame([new_row])
         df_trabajadores = pd.concat([df_trabajadores, new_row_df], ignore_index=True)
         
-        # Guardar el DataFrame actualizado en el archivo CSV
-        df_trabajadores.to_csv('../data/trabajadores.csv', index=False)
-        
         return df_trabajadores
     
     def write_df(self, df_personas, df_trabajadores):
         #Busco el ultimo ID del archivo de personas y sumo uno
         if self.id == None:
-            self.id=df_personas.index.max()+1
+            self.id=df_personas['id'].max()+1
         elif self.id in df_trabajadores['id'].values:
             print('Error: No se pudo agregar, id ya existente en archivo de trabajadores')
             return df_personas,df_trabajadores
@@ -92,11 +89,16 @@ class Trabajador(Persona):
         return df_personas, df_trabajadores
 
     def remove_from_df(self, df_trabajadores):
-        # Borra del DataFrame el objeto contenido en esta clase.
+        # Borra del DataFrame de trabajadores el objeto contenido en esta clase.
         df_trabajadores = df_trabajadores[df_trabajadores['id'] != self.id]
+
+        # Borra del DataFrame de personas el objeto contenido en esta clase.
+        df_personas = Persona.create_df_from_csv("../data/personas.csv")
+        df_personas = df_personas[df_personas['id'] != self.id]
         
         # Guardar el DataFrame actualizado en el archivo CSV
         df_trabajadores.to_csv('../data/trabajadores.csv', index=False)
+        df_personas.to_csv('../data/personas.csv', index=False)
 
         return df_trabajadores
 
@@ -168,34 +170,28 @@ class Trabajador(Persona):
         filtro=cls.filtrar_df(df_trabajadores, id=id, puesto=puesto, categoria=categoria, horarioTrabajo=horarioTrabajo)
         return cls.convertir_a_trabajadores(df_trabajadores=filtro)
 
-    # @classmethod
-    # def get_stats(cls,df_trabajadores, anios=None, generos=None):
-    #     # Este class method imprime una serie de estadísticas calculadas sobre
-    #     # los resultados de una consulta al DataFrame df_trabajadores. 
-    #     # Las estadísticas se realizarán sobre las filas que cumplan con los requisitos de:
-    #     # anios: [desde_año, hasta_año]
-    #     # generos: [generos]
-    #     # Las estadísticas son:
-    #     filtro = cls.filtrar_df(df_trabajadores, anios = anios, generos= generos)
+    @classmethod
+    def get_stats(cls, df_trabajadores, dfpersonas, puestosList=None, aniosDeInteres=None):
+        
+        dfpersonasLocal=dfpersonas.copy()
+        dfpersonasLocal = Persona.filtrar_df(dfpersonasLocal , yearOfBirth=aniosDeInteres)
+        merged_users_personas = pd.merge(df_trabajadores[['id', 'Position']], dfpersonasLocal[['id', 'year_of_birth']], on='id', how='inner')
+        merged_users_personas.drop('id', axis=1, inplace=True)
 
-    #     fecha_minima = filtro['DateNorm'].min()
-    #     PelisMasAntigua=filtro[filtro['DateNorm'] == fecha_minima]
-    #     if PelisMasAntigua.shape[0]==1:
-    #         print(f'Pelicula mas vieja:\n{cls.ConvertirAPeliculas(PelisMasAntigua)[0]}')
-    #     else:
-    #         print(f'{PelisMasAntigua.shape[0]} películas comparten la fecha mas vieja:\n{cls.ConvertirAPeliculas(PelisMasAntigua)}')
 
-    #     fecha_maxima = filtro['DateNorm'].max()
-    #     PeliMasReciente=filtro[filtro['DateNorm'] == fecha_maxima]
-    #     if PeliMasReciente.shape[0]==1:
-    #         print(f'\nPelicula mas reciente:\n{cls.ConvertirAPeliculas(PeliMasReciente)[0]}')
-    #     else:
-    #         print(f'{PelisMasAntigua.shape[0]} películas comparten la fecha mas reciente:\n{cls.ConvertirAPeliculas(PeliMasReciente)}')
-    #     # - Datos película más vieja
-    #     # - Datos película más nueva
-    #     # - Bar plots con la cantidad de películas por año/género.
-    #     # - Cantidad de películas totales.
-    #     return
+        if puestosList!=None: 
+            df_filtrado1 = merged_users_personas[merged_users_personas['Position'].isin(puestosList)]
+        else:
+            df_filtrado1=merged_users_personas
+
+        TotalTrabajadores=df_filtrado1.shape[0]
+        print("El Total de Trabajadores es: ",TotalTrabajadores)
+
+        grouped_data = df_filtrado1.groupby(["Position", "year_of_birth"]).size().reset_index(name="count")
+        grouped_data['Position'] = grouped_data['Position'].str.lower().str.title()
+        faux.barplot_puestos_nacimiento(grouped_data)
+
+        return
     
   
 

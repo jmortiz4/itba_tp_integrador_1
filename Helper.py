@@ -200,3 +200,21 @@ def heatmap_ocupacion_nacimiento(grouped_data):
     plt.xticks(rotation=90)
     plt.ylabel("Ocupación")
     return plt.show()
+
+def barplot_puestos_nacimiento(tabla):
+    # Crear el gráfico de barras
+    plt.figure(figsize=(12, 8))
+    for position in tabla['Position'].unique():
+        data = tabla[tabla['Position'] == position]
+        plt.bar(data['year_of_birth'], data['count'], label=position)
+    
+    # Configuración del gráfico
+    plt.xlabel('Año de Nacimiento')
+    plt.ylabel('Número de Puestos')
+    plt.title('Número de Puestos de Trabajadores por Año de Nacimiento')
+    plt.xticks(rotation=45)
+    plt.legend(title='Position', loc='upper left')
+
+    # Mostrar el gráfico
+    plt.tight_layout()
+    plt.show()
