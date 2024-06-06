@@ -6,8 +6,19 @@ from clases.Persona import Persona
 
 class Usuario(Persona):
     
-    def __init__(self, fecha_nac=None, genero=None, cod_postal=None, ocupacion=None, fecha_alta=None, fullname=None,id=None):
-        super().__init__(id=id, fullname=fullname, yearOfBirth=fecha_nac, gender=genero, zipcode=cod_postal)
+    def __init__(self, anho_nac=None, genero=None, cod_postal=None, ocupacion=None, fecha_alta=None, fullname=None,id=None):
+        super().__init__(id=id, fullname=fullname, yearOfBirth=anho_nac, gender=genero, zipcode=cod_postal)
+        if id is not None:
+            # Si se proporciona un ID, cargamos los datos de la persona
+            personas = Persona.ConvertirAPersonas(Persona.create_df_from_csv("../data/personas.csv"))
+            for p in personas:
+                if p.id == id: 
+                    super().__init__(id=p.id, fullname=p.fullName, yearOfBirth=p.yearOfBirth, gender=p.gender, zipcode=p.zipcode)
+        
+        else:
+            super().__init__(id=id, fullname=fullname, yearOfBirth=anho_nac, gender=genero, zipcode=cod_postal)
+        
+
         self.ocupacion = ocupacion
         self.fecha_alta = fecha_alta
 
@@ -22,7 +33,7 @@ class Usuario(Persona):
         # estructura y devuelve un DataFrame con la información cargada del
         # archivo 'filename'.
         ###
-        df = pd.read_csv(filename, index_col=0)
+        df = pd.read_csv(filename)
         df['Active Since'] = pd.to_datetime(df['Active Since'], format='%Y-%m-%d %H:%M:%S')
         df = df.rename(columns={'Active Since':'fecha_alta','Occupation':'ocupacion'})
         return df
@@ -46,11 +57,12 @@ class Usuario(Persona):
         # Este class method recibe un df y devuelve un listado de peliculas
         lista_usuarios = []
         # Itera sobre cada fila del DataFrame
-        for index,row in df.iterrows():
+        for _,row in df.iterrows():
             # Crea un objeto Usuario con los datos de la fila actual
             ocupacion = row['ocupacion']
             fecha_alta = row['fecha_alta']
-            usuario = Usuario(id=index, ocupacion=ocupacion, fecha_alta=fecha_alta)
+            id = row['id']
+            usuario = Usuario(id=id, ocupacion=ocupacion, fecha_alta=fecha_alta)
             # Agrega el objeto Pelicula a la lista
             lista_usuarios.append(usuario)
         return lista_usuarios
@@ -66,20 +78,25 @@ class Usuario(Persona):
             return cls.ConvertirAUsuarios(df=filtro)
     
     
-    def write_df(self, df):
+    def write_df(self, df_usuarios, df_personas):
 
-        df_usuarios = df.copy()
+
         if self.id == None:
-            self.id=df_usuarios.index.max()+1
-        elif self.id in df_usuarios.index:
+            self.id=df_usuarios['id'].max()+1
+        elif self.id in df_usuarios['id'].values:
             print('Error: No se pudo agregar, id ya existente')
             return df_usuarios
         
-        new_row = {'ocupacion': self.ocupacion, 'fecha_alta': self.fecha_alta}
+        new_row = {'id':self.id, 'ocupacion': self.ocupacion, 'fecha_alta': self.fecha_alta}
         new_row_df = pd.DataFrame([new_row])
-        df_usuarios.loc[self.id] = new_row
-                
-        return df
+        #df_usuarios.loc[self.id] = new_row
+        df_usuarios = pd.concat([df_usuarios,new_row_df],ignore_index = True)
+
+        new_row = {'id':self.id,'Full_Name': self.fullName, 'year_of_birth' : self.yearOfBirth, 'Gender' : self.gender, 'Zip_Code' : self.zipcode }
+        new_row_df = pd.DataFrame([new_row])
+        df_personas = pd.concat([df_personas,new_row_df],ignore_index = True)
+
+        return df_usuarios,df_personas
     
     def remove_from_df(self, df):
         # Borra del DataFrame el objeto contenido en esta clase.
@@ -94,7 +111,17 @@ class Usuario(Persona):
         else:
             print("No existe en el df recibido una persona exactamente igual a la que invoca esta acción")
             return df_usuarios
-        
+
+    @classmethod
+    def persistir_df(cls, df_personas, df_usuarios):
+       # Guardar los dataframes actualizados en los archivos CSV
+       dict_replace = { 'ocupacion':'Occupation', 'fecha_alta':'Active Since'}
+       df_usuarios = df_usuarios.replace(columns=dict_replace)
+       df_usuarios.to_csv('../data/usuarios.csv', index=False)
+       df_personas.to_csv('../data/personas.csv', index=False)
+
+       return
+
     @classmethod
     def get_stats(cls, df_usuarios, dfpersonas, ocupacionesList=None, aniosDeInteres=None):
         

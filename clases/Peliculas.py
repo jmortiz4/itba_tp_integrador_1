@@ -63,7 +63,14 @@ class Pelicula:
             return df_mov
         
         return df_mov
-
+    
+    @classmethod
+    def persistir_df(cls, df_peliculas):
+       # Guardar los dataframes actualizados en los archivos CSV
+       dict_replace = { 'ocupacion':'Occupation', 'fecha_alta':'Active Since'}
+       df_peliculas.to_csv('../data/peliculas.csv', index=False)
+       return None
+    
     @classmethod
     def create_df_from_csv(cls, filename):
         # Este class method recibe el nombre de un archivo csv, valida su 
@@ -74,9 +81,7 @@ class Pelicula:
         df.set_index('id', inplace=True)
         df.columns = [col.replace(' ', '_') for col in df.columns]
         df['Release_Date'] = pd.to_datetime(df['Release_Date'], format='%d-%b-%Y')
-        df=faux.eliminoCaracterDeColumnasDF(df,["'","-"])
-       
-
+        df=faux.eliminoCaracterDeColumnasDF(df,["'","-"]) 
         ###
         return df
     
