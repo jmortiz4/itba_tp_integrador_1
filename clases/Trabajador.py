@@ -81,11 +81,6 @@ class Trabajador(Persona):
         # Restaurar el índice de df_personas
         df_personas.reset_index(drop=True, inplace=True)
 
-
-        # Guardar los dataframes actualizados en los archivos CSV
-        df_trabajadores.to_csv('../data/trabajadores.csv', index=False)
-        df_personas.to_csv('../data/personas.csv', index=False)
-
         return df_personas, df_trabajadores
 
     def remove_from_df(self, df_trabajadores):
@@ -95,12 +90,17 @@ class Trabajador(Persona):
         # Borra del DataFrame de personas el objeto contenido en esta clase.
         df_personas = Persona.create_df_from_csv("../data/personas.csv")
         df_personas = df_personas[df_personas['id'] != self.id]
-        
+
+        return df_personas, df_trabajadores
+    
+    @classmethod
+    def persistir_df(cls, df_personas, df_trabajadores):
+
         # Guardar el DataFrame actualizado en el archivo CSV
         df_trabajadores.to_csv('../data/trabajadores.csv', index=False)
         df_personas.to_csv('../data/personas.csv', index=False)
 
-        return df_trabajadores
+        return df_personas, df_trabajadores
 
     @classmethod
     def create_df_from_csv(cls, filename):

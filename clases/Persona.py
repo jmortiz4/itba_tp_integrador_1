@@ -21,12 +21,12 @@ class Persona:
         
         df_persona = df.copy()
         if self.id == None:
-            self.id=df_persona.index.max()+1
-        elif self.id in df_persona.index:
+            self.id=df_persona['id'].max()+1
+        elif self.id in df_persona['id']:
             print('Error: No se pudo agregar, id ya existente')
             return df_persona
             
-        new_row = {'Full_Name': self.fullName, 'year_of_birth' : self.yearOfBirth, 'Gender' : self.gender, 'Zip_Code' : self.zipcode }
+        new_row = {'id':self.id,'Full_Name': self.fullName, 'year_of_birth' : self.yearOfBirth, 'Gender' : self.gender, 'Zip_Code' : self.zipcode }
         df_persona.loc[self.id] = new_row
 
             
