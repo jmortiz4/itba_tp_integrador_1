@@ -67,7 +67,6 @@ class Pelicula:
     @classmethod
     def persistir_df(cls, df_peliculas):
        # Guardar los dataframes actualizados en los archivos CSV
-       dict_replace = { 'ocupacion':'Occupation', 'fecha_alta':'Active Since'}
        df_peliculas.to_csv('../data/peliculas.csv', index=False)
        return None
     

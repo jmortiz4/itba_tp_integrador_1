@@ -5,22 +5,23 @@ import matplotlib.colors as mcolors
 import seaborn as sns
 import sys
 sys.path.append('../') 
+from clases.Scores import Score
+from clases.Peliculas import Pelicula
+from clases.Usuario import Usuario
+from clases.Trabajador import Trabajador
+from clases.Persona import Persona
 
 
-
-def load_all(file_personas='personas.csv', file_trabajadores='trabajadores.csv', file_usuarios='usuarios.csv', file_peliculas='peliculas.csv', file_scores='scores.csv'):
+def load_all(file_personas, file_trabajadores, file_usuarios, file_peliculas, file_scores):
     
-    #df_peliculas =Pelicula.create_df_from_csv(file_peliculas)
-    ##df_personas = Persona.create_df_from_csv(file_personas)
-    #df_usuarios = Usuario.create_df_from_csv(file_usuarios)
-    #df_trabajadores= Trabajador.create_df_from_csv(file_trabajadores)
-    #df_scores = Score.create_df_from_csv(file_scores)
+    df_peliculas =Pelicula.create_df_from_csv(file_peliculas)
+    df_personas = Persona.create_df_from_csv(file_personas)
+    df_usuarios = Usuario.create_df_from_csv(file_usuarios)
+    df_trabajadores= Trabajador.create_df_from_csv(file_trabajadores)
+    df_scores = Score.create_df_from_csv(file_scores)
 
-    #return df_personas, df_trabajadores, df_usuarios, df_peliculas, df_scores
-    return 
-
-
-
+    return df_personas, df_trabajadores, df_usuarios, df_peliculas, df_scores
+    
 
 def save_all(df_personas, df_trabajadores, df_usuarios, df_peliculas, df_scores,
               file_personas="personas.csv", file_trabajadores="trabajadores.csv",
@@ -143,6 +144,8 @@ def kdeplot_edad_genero_rating(df):
     plt.title('Distribution Plot for Males')
     plt.xlabel('Age')
     plt.ylabel('Rating')
+    plt.xlim(30, 100)
+    plt.xticks(range(30, 101, 10))  
 
     # Gráfico para género femenino
     plt.subplot(1, 2, 2)
@@ -150,6 +153,8 @@ def kdeplot_edad_genero_rating(df):
     plt.title('Distribution Plot for Females')
     plt.xlabel('Age')
     plt.ylabel('Rating')
+    plt.xlim(30, 100)
+    plt.xticks(range(30, 101, 10))  
 
     plt.tight_layout()
     plt.show()
