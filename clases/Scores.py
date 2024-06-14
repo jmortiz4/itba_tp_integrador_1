@@ -1,8 +1,12 @@
-
+import sys
+sys.path.append('../') 
 import pandas as pd
 import numpy as np
 import Helper as Faux
 from datetime import datetime
+from clases.Persona import Persona
+from clases.Peliculas import Pelicula
+
 
 class Score:
     def __init__(self, timestamp, puntuacion, idPelicula, idUsuario):
@@ -15,8 +19,39 @@ class Score:
         # Este método debe imprimir la información de esta película.
         return f'\n [ID Movie {self.idPelicula}] [ID Usuario{self.idUsuario}] - Califico: ({self.puntuacion}) en: -{self.timestamp}-'
     
-    def filtra_df(self,df_sco):
-        return df_sco[(df_sco['user_id'] == self.idUsuario) & (df_sco['movie_id'] == self.idPelicula)]
+    @classmethod
+    def filtra_df(cls, df_sco,df_personas=None, df_peliculas=None, generoPersona=None, year_of_birth=None, anioReview=None, puntuacion=None, idPelicula=None, idUsuario=None, 
+                  anioEstreno=None, generosPeliculas=None):
+        
+        queryText=''
+
+        if idUsuario!=None:
+            queryText+='user_id=='+ str(idUsuario) + ' and '
+        if idPelicula!=None:
+            queryText+='movie_id=='+ str(idPelicula) + ' and '
+        if anioReview!=None:
+            desde,hasta=anioReview
+            queryText+='Date >= "' + str(desde)+'-01-01' +'" and Date <= "'+ str(hasta)+'-12-31' + '"'+ ' and '
+        if puntuacion!=None:
+            queryText+=f'rating=={puntuacion} and '
+        
+        queryText=queryText[:-5]#Se castea a todo menos los ultimos 5 caracteres ya que son un " and " adicional 
+
+        if queryText=='':
+            filtro = df_sco
+        else:
+            filtro = df_sco.query(queryText, engine="python")
+
+        if isinstance(df_personas, pd.DataFrame) and (generoPersona!=None or year_of_birth!= None):
+            df_persona_filtrado=Persona.filtrar_df(df_personas,Gender=generoPersona,yearOfBirth=year_of_birth)
+            filtro=filtro[filtro['user_id'].isin(df_persona_filtrado['id'])]
+            
+
+        if  isinstance(df_peliculas, pd.DataFrame):
+            df_peliculas_filtrado=Pelicula.filtrar_df(df_peliculas,anios=anioEstreno,generos=generosPeliculas)
+            filtro=filtro[filtro['movie_id'].isin(df_peliculas_filtrado.index)]
+
+        return filtro
     
 
     def write_df(self, df):
@@ -74,22 +109,9 @@ class Score:
         return df
     
     @classmethod
-    def get_from_df(cls, df_sco, anios=None, puntuacion=None, idPelicula=None, idUsuario=None):
-        queryText=''
-
-        if idUsuario!=None:
-            queryText+='user_id=='+ str(idUsuario) + ' and '
-        if idPelicula!=None:
-            queryText+='movie_id=='+ str(idPelicula) + ' and '
-        if anios!=None:
-            desde,hasta=anios
-            queryText+='Date >= "' + str(desde)+'-01-01' +'" and Date <= "'+ str(hasta)+'-12-31' + '"'+ ' and '
-        if puntuacion!=None:
-            queryText+=f'rating=={puntuacion} and '
-        
-        queryText=queryText[:-5]#Se castea a todo menos los ultimos 5 caracteres ya que son un " and " adicional 
-    
-        filtro= df_sco.query(queryText, engine="python")
+    def get_from_df(cls, df_sco, anioReview=None, puntuacion=None, idPelicula=None, idUsuario=None):
+           
+        filtro= cls.filtra_df(df_sco, anioReview=anioReview, puntuacion=puntuacion, idPelicula=idPelicula, idUsuario=idUsuario)
         return cls.ConvertirAScores(filtro)
     
     @classmethod
@@ -123,8 +145,9 @@ class Score:
 
     @classmethod
     def puntuacion_edad_genero(cls,df_personas,df_sco):
+        
         users_agrupado=df_sco.groupby('user_id')['rating'].mean().reset_index()
-        merged_users_scores_df = pd.merge(users_agrupado, df_personas[['year_of_birth','Gender']],right_on='id', left_on="user_id", how='inner')
+        merged_users_scores_df = pd.merge(users_agrupado, df_personas[['id','year_of_birth','Gender']],right_on='id', left_on="user_id", how='inner')
         merged_users_scores_df['age'] = datetime.now().year - merged_users_scores_df['year_of_birth']
         merged_users_scores_df_grouped=merged_users_scores_df.groupby(['Gender','age'])['rating'].mean().reset_index()
 

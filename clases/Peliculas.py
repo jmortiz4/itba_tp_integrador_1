@@ -6,16 +6,6 @@ import pandas as pd
 caracteresComplejos=["'","-"]
 
 
-def genero_tabla_para_plot(df_tabla,generos):
-
-    df_mov=df_tabla.copy()
-    df_mov['year'] = df_mov['Release_Date'].dt.year
-    genre_columns = ['year']+ generos #Si no especificaron generos se muestran todos
-    df_genres = df_mov[genre_columns].copy()
-    genre_by_year = df_genres.groupby('year').sum()
-    genre_by_year=genre_by_year.loc[:, (genre_by_year != 0).any(axis=0)]  # Borrar columnas con valor 0
-    return genre_by_year
-
 
 class Pelicula:
     def __init__(self, nombre, anio, generos, id = None):
@@ -129,6 +119,18 @@ class Pelicula:
     
         filtro=cls.filtrar_df(df_mov, id=id, nombre=nombre, anios=anios, generos=generos)
         return cls.ConvertirAPeliculas(df_mov=filtro)
+    
+    
+    def genero_tabla_para_plot(df_tabla,generos):
+
+        df_mov=df_tabla.copy()
+        df_mov['year'] = df_mov['Release_Date'].dt.year
+        genre_columns = ['year']+ generos #Si no especificaron generos se muestran todos
+        df_genres = df_mov[genre_columns].copy()
+        genre_by_year = df_genres.groupby('year').sum()
+        genre_by_year=genre_by_year.loc[:, (genre_by_year != 0).any(axis=0)]  # Borrar columnas con valor 0
+        return genre_by_year
+
 
     @classmethod
     def get_stats(cls,df_mov, anios=None, generos=None):
@@ -163,6 +165,8 @@ class Pelicula:
         # - Bar plots con la cantidad de películas por año/género.
  
         return
+    
+
     
   
 
