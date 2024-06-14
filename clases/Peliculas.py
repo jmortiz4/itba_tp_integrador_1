@@ -6,6 +6,16 @@ import pandas as pd
 caracteresComplejos=["'","-"]
 
 
+def genero_tabla_para_plot(df_tabla,generos):
+
+    df_mov=df_tabla.copy()
+    df_mov['year'] = df_mov['Release_Date'].dt.year
+    genre_columns = ['year']+ generos #Si no especificaron generos se muestran todos
+    df_genres = df_mov[genre_columns].copy()
+    genre_by_year = df_genres.groupby('year').sum()
+    genre_by_year=genre_by_year.loc[:, (genre_by_year != 0).any(axis=0)]  # Borrar columnas con valor 0
+    return genre_by_year
+
 
 class Pelicula:
     def __init__(self, nombre, anio, generos, id = None):
@@ -40,8 +50,6 @@ class Pelicula:
         return df_mov
 
     def remove_from_df(self, df):
-        
-
         df_mov= df.copy()
         
         fila_a_borrar=self.filtrar_df(df_mov, id=self.id, nombre = self.nombre, anios = [self.anio,self.anio], generos = self.generos)
@@ -51,9 +59,7 @@ class Pelicula:
         else:
             print("No existe en el df recibido una película exactamente igual a la que invoca esta acción")
             return df_mov
-        
-        return df_mov
-    
+            
     @classmethod
     def persistir_df(cls, df_peliculas):
        # Guardar los dataframes actualizados en los archivos CSV
@@ -70,7 +76,7 @@ class Pelicula:
         df.set_index('id', inplace=True)
         df.columns = [col.replace(' ', '_') for col in df.columns]
         df['Release_Date'] = pd.to_datetime(df['Release_Date'], format='%d-%b-%Y')
-        df=faux.eliminoCaracterDeColumnasDF(df,["'","-"]) 
+        df=faux.eliminoCaracterDeColumnasDF(df,caracteresComplejos) 
         ###
         return df
     
@@ -119,18 +125,6 @@ class Pelicula:
     
         filtro=cls.filtrar_df(df_mov, id=id, nombre=nombre, anios=anios, generos=generos)
         return cls.ConvertirAPeliculas(df_mov=filtro)
-    
-    
-    def genero_tabla_para_plot(df_tabla,generos):
-
-        df_mov=df_tabla.copy()
-        df_mov['year'] = df_mov['Release_Date'].dt.year
-        genre_columns = ['year']+ generos #Si no especificaron generos se muestran todos
-        df_genres = df_mov[genre_columns].copy()
-        genre_by_year = df_genres.groupby('year').sum()
-        genre_by_year=genre_by_year.loc[:, (genre_by_year != 0).any(axis=0)]  # Borrar columnas con valor 0
-        return genre_by_year
-
 
     @classmethod
     def get_stats(cls,df_mov, anios=None, generos=None):
@@ -139,7 +133,7 @@ class Pelicula:
         # Las estadísticas se realizarán sobre las filas que cumplan con los requisitos de:
         # anios: [desde_año, hasta_año]
         # generos: [generos]
-        # Las estadísticas son:
+
         filtro = cls.filtrar_df(df_mov, anios = anios, generos= generos)
         print(f'-Cantidad de peliculas en la selección:{filtro.shape[0]}\n')
 
@@ -162,11 +156,8 @@ class Pelicula:
         generos = faux.elminoCaracterDeLista(generos,caracteresComplejos)
         tabla_para_plot = genero_tabla_para_plot(filtro,generos)
         faux.barplot_cantdad_año_generos(tabla_para_plot)
-        # - Bar plots con la cantidad de películas por año/género.
- 
+        
         return
-    
-
     
   
 
