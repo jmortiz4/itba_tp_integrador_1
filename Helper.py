@@ -147,7 +147,7 @@ def kdeplot_edad_genero_rating(df):
     plt.xlim(30, 100)
     plt.xticks(range(30, 101, 10))  
     plt.ylim(1, 5)
-    #plt.yticks(range(1, 6, 0.5))  
+    
 
     # Gráfico para género femenino
     plt.subplot(1, 2, 2)
@@ -158,7 +158,7 @@ def kdeplot_edad_genero_rating(df):
     plt.xlim(30, 100)
     plt.xticks(range(30, 101, 10))  
     plt.ylim(1, 5)
-    #plt.yticks(range(1, 6, 0.5))  
+    
 
     plt.tight_layout()
     plt.show()
