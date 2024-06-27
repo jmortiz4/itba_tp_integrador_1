@@ -12,6 +12,30 @@ from clases.Trabajador import Trabajador
 from clases.Persona import Persona
 
 
+def Outputear_diferencias(diferencias_entre_dfs, mensaje_ok, mensaje_error):
+    if diferencias_entre_dfs > 0 :
+        print(f'Hay un total de {diferencias_entre_dfs} {mensaje_error} ')
+    else:
+        print(f'{mensaje_ok}')
+
+def CheckIntegrityMovies(df_peliculas, df_sco):
+
+    df_sco_crosschecked = df_sco[df_sco['movie_id'].isin(df_peliculas.index)]
+    diferencias_en_crosscheck = df_sco.shape[0] - df_sco_crosschecked.shape[0]
+    mensaje_error='movie_ids en scores que no existen en la base de peliculas y se eliminarán de scores'
+    mensaje_ok='No se encontraron problemas de integridad entre Peliculas y Scores.'
+    Outputear_diferencias(diferencias_en_crosscheck , mensaje_ok , mensaje_error )
+    return df_sco_crosschecked
+
+def CheckIntegrityPersonas(df_personas, df_aChequear, nombreDF):
+
+    df_aChequear_crosschecked = df_aChequear[df_aChequear['id'].isin(df_personas['id'])]
+    diferencias_en_crosscheck = df_aChequear.shape[0] - df_aChequear_crosschecked.shape[0]
+    mensaje_error=f'ids personas en {nombreDF} que no existen en la base de personas y se eliminarán de {nombreDF}'
+    mensaje_ok=f'No se encontraron problemas de integridad entre Personas y {nombreDF}.'
+    Outputear_diferencias(diferencias_en_crosscheck , mensaje_ok , mensaje_error )
+    return df_aChequear_crosschecked
+
 def load_all(file_personas, file_trabajadores, file_usuarios, file_peliculas, file_scores):
     
     df_peliculas =Pelicula.create_df_from_csv(file_peliculas)
@@ -20,15 +44,13 @@ def load_all(file_personas, file_trabajadores, file_usuarios, file_peliculas, fi
     df_trabajadores= Trabajador.create_df_from_csv(file_trabajadores)
     df_scores = Score.create_df_from_csv(file_scores)
 
+    #Check Integrity 
+    df_scores=CheckIntegrityMovies(df_peliculas, df_scores)
+    df_usuarios=CheckIntegrityPersonas(df_personas, df_usuarios,'Usuarios')
+    df_trabajadores=CheckIntegrityPersonas(df_personas, df_trabajadores,'Trabajadores')
+
     return df_personas, df_trabajadores, df_usuarios, df_peliculas, df_scores
     
-
-def save_all(df_personas, df_trabajadores, df_usuarios, df_peliculas, df_scores,
-              file_personas="personas.csv", file_trabajadores="trabajadores.csv",
-                file_usuarios="usuarios.csv", file_peliculas="peliculas.csv", file_scores="scores.csv"):
-    #Código de Salvado
-    return 0 # O -1 si hubo algún error 
-
 def reemplazo_espacios_por_guion_bajo(df):
     df.columns = [col.replace(' ', '_') for col in df.columns]
     return df
