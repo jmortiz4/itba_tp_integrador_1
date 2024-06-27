@@ -12,28 +12,27 @@ from clases.Trabajador import Trabajador
 from clases.Persona import Persona
 
 
-def Outputear_diferencias(diferencias_entre_dfs, mensaje_ok, mensaje_error):
-    if diferencias_entre_dfs > 0 :
-        print(f'Hay un total de {diferencias_entre_dfs} {mensaje_error} ')
+def Outputear_diferencias(diferencias_en_ids_crosscheck, diferencias_en_rows_crosscheck, nombreDF, dfComparacion):
+    print(f'{dfComparacion} vs {nombreDF} : ',end=' ')
+    if diferencias_en_rows_crosscheck > 0 :
+        print(f'Hay un total de {diferencias_en_ids_crosscheck} id en {nombreDF} que no existen en la base de {dfComparacion} correspondientes a {diferencias_en_rows_crosscheck} rows en {nombreDF} que se eliminaran')
     else:
-        print(f'{mensaje_ok}')
+        print(f'No se encontraron problemas de integridad entre {dfComparacion} y {nombreDF}')
 
-def CheckIntegrityMovies(df_peliculas, df_sco):
+def CheckIntegrityMovies(df_peliculas, df_aChequear, nombreDF ,columnaID_aChequear):
 
-    df_sco_crosschecked = df_sco[df_sco['movie_id'].isin(df_peliculas.index)]
-    diferencias_en_crosscheck = df_sco.shape[0] - df_sco_crosschecked.shape[0]
-    mensaje_error='movie_ids en scores que no existen en la base de peliculas y se eliminarán de scores'
-    mensaje_ok='No se encontraron problemas de integridad entre Peliculas y Scores.'
-    Outputear_diferencias(diferencias_en_crosscheck , mensaje_ok , mensaje_error )
+    df_sco_crosschecked = df_aChequear[df_aChequear[columnaID_aChequear].isin(df_peliculas.index)]
+    diferencias_en_rows_crosscheck = df_aChequear.shape[0] - df_sco_crosschecked.shape[0]
+    diferencias_en_ids_crosscheck = df_aChequear[~df_aChequear[columnaID_aChequear].isin(df_peliculas.index)][columnaID_aChequear].nunique()
+    Outputear_diferencias(diferencias_en_ids_crosscheck , diferencias_en_rows_crosscheck,  nombreDF , 'Peliculas' )
     return df_sco_crosschecked
 
-def CheckIntegrityPersonas(df_personas, df_aChequear, nombreDF):
+def CheckIntegrityPersonas(df_personas, df_aChequear, nombreDF, columnaID_aChequear):
 
-    df_aChequear_crosschecked = df_aChequear[df_aChequear['id'].isin(df_personas['id'])]
-    diferencias_en_crosscheck = df_aChequear.shape[0] - df_aChequear_crosschecked.shape[0]
-    mensaje_error=f'ids personas en {nombreDF} que no existen en la base de personas y se eliminarán de {nombreDF}'
-    mensaje_ok=f'No se encontraron problemas de integridad entre Personas y {nombreDF}.'
-    Outputear_diferencias(diferencias_en_crosscheck , mensaje_ok , mensaje_error )
+    df_aChequear_crosschecked = df_aChequear[df_aChequear[columnaID_aChequear].isin(df_personas['id'])]
+    diferencias_en_rows_crosscheck = df_aChequear.shape[0] - df_aChequear_crosschecked.shape[0]
+    diferencias_en_ids_crosscheck = df_aChequear[~df_aChequear[columnaID_aChequear].isin(df_personas['id'])][columnaID_aChequear].nunique()
+    Outputear_diferencias(diferencias_en_ids_crosscheck , diferencias_en_rows_crosscheck,  nombreDF , 'Personas' )
     return df_aChequear_crosschecked
 
 def load_all(file_personas, file_trabajadores, file_usuarios, file_peliculas, file_scores):
@@ -45,9 +44,10 @@ def load_all(file_personas, file_trabajadores, file_usuarios, file_peliculas, fi
     df_scores = Score.create_df_from_csv(file_scores)
 
     #Check Integrity 
-    df_scores=CheckIntegrityMovies(df_peliculas, df_scores)
-    df_usuarios=CheckIntegrityPersonas(df_personas, df_usuarios,'Usuarios')
-    df_trabajadores=CheckIntegrityPersonas(df_personas, df_trabajadores,'Trabajadores')
+    df_scores=CheckIntegrityMovies(df_peliculas, df_scores, 'Scores' , 'movie_id')
+    df_usuarios=CheckIntegrityPersonas(df_personas, df_usuarios,'Usuarios','id')
+    df_trabajadores=CheckIntegrityPersonas(df_personas, df_trabajadores,'Trabajadores','id')
+    df_scores=CheckIntegrityPersonas(df_personas, df_scores,'Scores','user_id')
 
     return df_personas, df_trabajadores, df_usuarios, df_peliculas, df_scores
     
